@@ -1,0 +1,111 @@
+---
+title: "Practica_general"
+author: "Sara Trapero"
+date: "20/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Trabajo de práctica final
+
+## Curso 'Manejo y visualización de datos en R'. UAH.
+
+Antes de nada, cargamos las librerías que vamos a necesitar y los datos 'penguins', así como vemos la estructura y comprobamos que las variables son del tipo que esperamos:
+
+```{r palmerpenguins}
+library(tidyverse)
+library(plyr)
+library(dplyr)
+library(kableExtra)
+library(ggplot2)
+library(palmerpenguins)
+penguins <- palmerpenguins::penguins
+str(penguins)
+```
+
+Posteriormente, se van a ir presentando la resolución de los distintos ejercicios.
+
+### Ejercicio 1
+
+-   Calcular el número de individuos totales, masculinos y femeninos por especie.
+
+    A continuación, se ha creado una tabla que recoge este número de individuos totales de ambos sexos por especie y se ha personalizado:
+
+```{r}
+tabla_1 <- table(penguins$sex, penguins$species)
+rownames(tabla_1) <- c("Hembras", "Machos")
+
+tabla_1 %>%
+  kbl(caption = "Recuento de individuos totales") %>%
+  kable_classic(full_width = F, html_font = "cambria", position = "center") %>%
+  row_spec(0, bold = T)
+
+```
+
+-   La media, desviación estándar, valor mínimo y máximo de la longitud y profundidad del pico, la longitud de la aleta y el tamaño.
+
+    A continuación, se ha creado otra tabla que recoge todos esos datos también personalizada igual que la anterior y con los decimales redondeados a 2:
+
+```{r 1}
+Media <- c((mean(penguins$bill_length_mm, na.rm = T)), (mean(penguins$bill_depth_mm, na.rm = T)), (mean(penguins$flipper_length_mm, na.rm = T)), (mean(penguins$body_mass_g, na.rm = T)))
+
+SD <- c((sd(penguins$bill_length_mm, na.rm = T)), (sd(penguins$bill_depth_mm, na.rm = T)), (sd(penguins$flipper_length_mm, na.rm = T)), (sd(penguins$body_mass_g, na.rm = T)))
+
+Mínimo <- c((min(penguins$bill_length_mm, na.rm = T)), (min(penguins$bill_depth_mm, na.rm = T)), (min(penguins$flipper_length_mm, na.rm = T)), (min(penguins$body_mass_g, na.rm = T)))
+
+Máximo <- c((max(penguins$bill_length_mm, na.rm = T)), (max(penguins$bill_depth_mm, na.rm = T)), (max(penguins$flipper_length_mm, na.rm = T)), (max(penguins$body_mass_g, na.rm = T)))
+
+tabla_2 <- data.frame(Media, SD, Mínimo, Máximo)
+tabla_2 <- round(tabla_2, digits = 2)
+row.names(tabla_2) <- c("Longitud pico (mm)", "Profundidad pico (mm)", "Longitud aleta (mm)", "Tamaño (g)")
+
+tabla_2 %>%
+  kbl(caption = "Descriptivos de pico, aleta y tamaño") %>%
+  kable_classic(full_width = F, html_font = "cambria", position = "center") %>%
+  row_spec(0, bold = T)
+
+```
+
+### Ejercicio 2
+
+-   Hacer un gráfico de barras que represente el número de individuos muestreados de cada especie en cada isla, representando las especies en diferentes colores (chinstrap -- morado, gentoo -- azul, adelie -- naranja).
+
+```{r 2}
+plot1 <- ggplot() +
+  geom_bar(data = penguins, aes(x = island, fill = species))
+
+plot1 +
+  labs(title = "Especies en cada isla", x = "Islas", y = "nº individuos", fill = "Especies") +
+  scale_fill_manual (values = c("darkorange2","darkviolet","deepskyblue2")) +
+  theme(axis.line = element_line(color = "black"), panel.background = element_blank()) +
+  scale_y_continuous(breaks = seq(0, 170, 5))
+```
+
+-   Contesta a las siguientes preguntas: ¿qué especie se ha muestreado en las tres islas? ¿cuántos individuos se han muestreado de la isla Dream?
+
+    Derivado del gráfico que hemos obtenido, vemos que la especie Adelie es la que se ha muestreado en las tres islas. Por otro lado, la cantidad total de individuos que se han muestreado en la isla Dream es de aproximadamente 125.
+
+### Ejercicio 3
+
+-   Un gráfico multipanel de cajas y bigotes del tamaño de los pingüinos según su sexo, donde aparezca un panel para cada especie.
+
+    Para realizarlo, se han eliminado los valores NA con respecto al sexo.
+
+```{r 3}
+penguins1 <- na.omit(penguins)
+plot2 <-ggplot(data = penguins1)+
+  geom_boxplot(aes(x = sex, y = body_mass_g))
+
+plot2 +
+  labs(title = "Tamaño de los pingüinos según especie y sexo", x = "Sexo", y = "Tamaño (g)") +
+  coord_flip() +
+  facet_grid(rows = vars(species))
+  
+```
+
+-   Contesta a las siguientes preguntas: ¿qué especie tiene mayor tamaño? ¿en qué especie las hembras y los machos tienen un tamaño más similar?
+
+    Viendo el gráfico observamos que la especie que contiene ejemplares de mayor tamaño es 'Gentoo' y que en la especie 'Chinstrap' las hrembas y los machos tienen un tamaño más similar.
